@@ -36,15 +36,15 @@ Changes I made beyond the lecture code:
 
 ## Experiments
 
-Same data, same 90/10 train/validation split, same seed. Only the model size and number of iterations changed.
+Same data, same 90/10 train/validation split, same seed. Model size and training settings changed between runs (see below).
 
-| Config | Layers | Embedding dim | Heads | Params | Iterations | Val loss |
-|---|---|---|---|---|---|---|---|
-| Original (lecture settings) | 6 | 384 | 6 | ~10.7M | 5000  | ~1.4 |
-| Small | 4 | 128 | 4 | ~0.8M | 3000 | ~1.63 |
-| Medium | 4 | 192 | 6 | ~1.8M | 5000 | ~1.50 |
+| Config                      | Layers | Embedding dim | Heads | Params | Iterations | Val loss |
+|-----------------------------|--------|---------------|-------|--------|------------|----------|
+| Original (lecture settings) | 6      | 384           | 6     | ~10.7M | 5000       | ~1.4     |
+| Small                       | 4      | 128           | 4     | ~0.8M  | 3000       | ~1.63    |
+| Medium                      | 4      | 192           | 6     | ~1.8M  | 5000       | ~1.50    |
 
-Validation loss starts at about 4.6 (close to random guessing over the character vocabulary) and falls steadily.
+Validation loss starts at about 4.6 (close to random guessing over the character vocabulary) and falls steadily. And not to mention the training time was also significantly reduced.
 
 ## What I noticed
 
