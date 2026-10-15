@@ -5,19 +5,19 @@ This is the same as gpt-dev.ipynb but in a .py file with a small few changes
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-import urllib.request
+import os
 
 # hyperparameters
-batch_size = 64 # how many independent sequences will we process in parallel?
-block_size = 256 # what is the maximum context length for predictions?
+batch_size = 32 # how many independent sequences will we process in parallel?
+block_size = 128 # what is the maximum context length for predictions?
 max_iters = 5000
-eval_interval = 500
-learning_rate = 3e-4
+eval_interval = 250
+learning_rate = 1e-3
 device = 'cuda' if torch.cuda.is_available() else 'cpu' # in case you have  a gpu so it'll be faster
-eval_iters = 200
-n_embd = 384
-n_head = 6
-n_layer = 6
+eval_iters = 50
+n_embd = 192
+n_head = 6 # 192/6 = 32, so the head size stays the same
+n_layer = 4
 dropout = 0.2
 # ------------
 
@@ -28,11 +28,16 @@ with open('input.txt', 'r', encoding='utf-8') as f:
     text = f.read()
 """
 
-url = "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt"
 
-#download and read the text file from the URL
-with urllib.request.urlopen(url) as response:
-    text = response.read().decode('utf-8')
+
+here = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(here, 'poems.txt'), 'r', encoding='utf-8') as f:
+    text = f.read()
+
+start, end = text.find('*** START OF'), text.find('*** END OF')
+if start != -1 and end != -1:
+    text = text[text.find('\n', start) + 1:end]
+print(len(text), 'characters') #a little cleaning up
 
 
 # here are all the unique characters that occur in this text
@@ -91,7 +96,7 @@ class Head(nn.Module):
         k = self.key(x) # (B,T,C)
         q = self.query(x) # (B,T,C)
         #compute attention scores("affinities")
-        weights = q@k.transpose(-2,-1) *C**-0.5 #(B,T,C)@(B,C,T) -> (B,T,T)
+        weights = q@k.transpose(-2,-1) * k.shape[-1]**-0.5 #(B,T,C)@(B,C,T) -> (B,T,T)
         weights = weights.masked_fill(self.tril[:T, :T]==0, float('-inf')) #(B,T,T)
         weights = F.softmax(weights, dim=-1) #(B,T,T)
         weights = self.dropout(weights)
@@ -112,7 +117,7 @@ class MultiHeadAttention(nn.Module):
 
     def forward(self, x):
         out = torch.cat([h(x) for h in self.heads], dim=-1)
-        out = self.proj(out)
+        out = self.dropout(self.proj(out))
         return out
 
 
@@ -225,5 +230,11 @@ for iter in range(max_iters):
     optimizer.step()
 
 # generate from the model
+torch.save(model.state_dict(), 'model.pt')
+
+model.eval()
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
-print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
+generated = decode(m.generate(context, max_new_tokens=1000)[0].tolist())
+print(generated)
+with open('generated.txt', 'w', encoding='utf-8') as f:
+    f.write(generated)

@@ -23,13 +23,19 @@ torch.manual_seed(1337)
 with open('input.txt', 'r', encoding='utf-8') as f:
     text = f.read()
 """
-
+'''
 url = "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt"
 
 #download and read the text file from the URL
 with urllib.request.urlopen(url) as response:
     text = response.read().decode('utf-8')
+'''
 
+import os
+
+here = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(here, 'inputs.txt'), 'r', encoding='utf-8') as f:
+    text = f.read()
 
 # here are all the unique characters that occur in this text
 chars = sorted(list(set(text)))
